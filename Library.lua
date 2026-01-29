@@ -285,7 +285,27 @@ function Library:Window(Config)
                 Container.Size = UDim2.new(1, 0, 0, List.AbsoluteContentSize.Y + 10)
                 SecFrame.Size = UDim2.new(1, -5, 0, List.AbsoluteContentSize.Y + 45)
             end)
-            
+
+            function Sec:Label(Text)
+                local LabFrame = Create("Frame", {
+                    Parent = Cont, 
+                    Size = UDim2.new(1, 0, 0, 25), 
+                    BackgroundTransparency = 1
+                })
+                
+                Create("TextLabel", {
+                    Parent = LabFrame, 
+                    Text = Text, 
+                    Size = UDim2.new(1, -10, 1, 0), 
+                    Position = UDim2.new(0, 5, 0, 0),
+                    BackgroundTransparency = 1, 
+                    TextColor3 = Library.Theme.Text, 
+                    Font = Enum.Font.Gotham, 
+                    TextSize = 13, 
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextWrapped = true
+                })
+            end
             function Section:Button(Text, Callback)
                 local Btn = Create("TextButton", {
                     Parent = Container, Size = UDim2.new(1, 0, 0, 35), BackgroundTransparency = 1, Text = "", AutoButtonColor = false
