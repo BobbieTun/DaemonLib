@@ -912,5 +912,5 @@ function Library:Window(Config)
         end
         ScreenGui:Destroy()
     end
-
+    getgenv().Library = Library
     return Library
