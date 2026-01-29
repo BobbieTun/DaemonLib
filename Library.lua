@@ -284,7 +284,65 @@ function Library:Window(Config)
             List:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
                 Container.Size = UDim2.new(1, 0, 0, List.AbsoluteContentSize.Y + 10)
                 SecFrame.Size = UDim2.new(1, -5, 0, List.AbsoluteContentSize.Y + 45)
-            end)
+                end)
+            function Section:Label(Text)
+                local Label = {}
+                
+                local LabelObj = Create("TextLabel", {
+                    Parent = Container,
+                    Text = Text,
+                    Size = UDim2.new(1, 0, 0, 20),
+                    BackgroundTransparency = 1,
+                    TextColor3 = Library.Theme.Text,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 13,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextWrapped = true
+                })
+
+                -- Thêm padding để chữ không bị sát lề, giống style của DaemonIX
+                Create("UIPadding", {
+                    Parent = LabelObj,
+                    PaddingLeft = UDim.new(0, 12),
+                    PaddingRight = UDim.new(0, 12),
+                    PaddingTop = UDim.new(0, 2),
+                    PaddingBottom = UDim.new(0, 2)
+                })
+
+                
+                local function UpdateSize()
+                   
+                    local containerWidth = Container.AbsoluteSize.X > 0 and Container.AbsoluteSize.X or 350
+                    local wrappedSize = TextService:GetTextSize(
+                        LabelObj.Text, 
+                        LabelObj.TextSize, 
+                        LabelObj.Font, 
+                        Vector2.new(containerWidth - 24, 9999)
+                    )
+                    LabelObj.Size = UDim2.new(1, 0, 0, wrappedSize.Y + 6)
+                end
+
+               
+                spawn(function()
+                    
+                    local start = tick()
+                    repeat task.wait() until Container.AbsoluteSize.X > 0 or tick() - start > 1
+                    UpdateSize()
+                end)
+
+                
+                function Label:Set(NewText)
+                    LabelObj.Text = NewText
+                    UpdateSize()
+                end
+
+               
+                function Label:SetColor(NewColor)
+                    LabelObj.TextColor3 = NewColor
+                end
+
+                return Label
+            end
             
             function Section:Button(Text, Callback)
                 local Btn = Create("TextButton", {
