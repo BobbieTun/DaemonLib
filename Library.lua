@@ -11,7 +11,7 @@ local Mouse = Player:GetMouse()
 
 local Library = {
     Name = "DaemonIX",
-    Version = "3.2",
+    Version = "3.3",
     Directory = "DaemonIX_Config",
     
     Theme = {
@@ -37,6 +37,10 @@ local Library = {
     IsVisible = true,
     Keybind = Enum.KeyCode.RightControl
 }
+
+local function GetTextSize(text, font, size)
+    return TextService:GetTextSize(text, size, font, Vector2.new(10000, 10000))
+end
 
 local function Tween(obj, props, time, style, dir)
     local info = TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out)
@@ -282,24 +286,14 @@ function Library:Window(Config)
                 SecFrame.Size = UDim2.new(1, -5, 0, List.AbsoluteContentSize.Y + 45)
             end)
             
-            -- [NEW] LABEL FUNCTION (Đã thêm vào đây)
+            -- [LABEL FUNCTION ADDED HERE]
             function Section:Label(Text)
                 local Frame = Create("Frame", {
-                    Parent = Container,
-                    Size = UDim2.new(1, 0, 0, 25),
-                    BackgroundTransparency = 1
+                    Parent = Container, Size = UDim2.new(1, 0, 0, 25), BackgroundTransparency = 1
                 })
                 Create("TextLabel", {
-                    Parent = Frame,
-                    Text = Text,
-                    Size = UDim2.new(1, -20, 1, 0),
-                    Position = UDim2.new(0, 12, 0, 0),
-                    BackgroundTransparency = 1,
-                    TextColor3 = Library.Theme.Text,
-                    Font = Enum.Font.Gotham,
-                    TextSize = 13,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    TextWrapped = true
+                    Parent = Frame, Text = Text, Size = UDim2.new(1, -10, 1, 0), Position = UDim2.new(0, 5, 0, 0),
+                    BackgroundTransparency = 1, TextColor3 = Library.Theme.Text, Font = Enum.Font.Gotham, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = true
                 })
             end
 
