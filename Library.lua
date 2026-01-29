@@ -11,7 +11,7 @@ local Mouse = Player:GetMouse()
 
 local Library = {
     Name = "DaemonIX",
-    Version = "3.0.0",
+    Version = "2.0.0",
     Directory = "DaemonIX_Config",
     
     Theme = {
@@ -168,7 +168,7 @@ function Library:Window(Config)
     end)
 
     local ShadowHolder = Create("Frame", {
-        Name = "ShadowHolder", Parent = ScreenGui, Size = UDim2.new(0, 650, 0, 450), Position = UDim2.new(0.5, -325, 0.5, -225), BackgroundTransparency = 1
+        Parent = ScreenGui, Size = UDim2.new(0, 650, 0, 450), Position = UDim2.new(0.5, -325, 0.5, -225), BackgroundTransparency = 1
     })
     
     local Main = Create("Frame", {
@@ -502,6 +502,9 @@ function Library:Window(Config)
                             Tween(Arrow, {Rotation = 0})
                             Library.Flags[Config.Flag or Config.Name] = val
                             if Config.Callback then Config.Callback(val) end
+                            
+                            if Config.Name == "Theme" or Config.Name == "UI Theme" then
+                            end
                         end)
                     end
                     List.CanvasSize = UDim2.new(0,0,0, #Config.List * 25)
@@ -896,5 +899,6 @@ function Library:Window(Config)
         ScreenGui:Destroy()
     end
 
-    return Library
+    
 end
+    return Library
