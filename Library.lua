@@ -11,7 +11,7 @@ local Mouse = Player:GetMouse()
 
 local Library = {
     Name = "DaemonIX",
-    Version = "3.0.0",
+    Version = "0.0.1",
     Directory = "DaemonIX_Config",
     
     Theme = {
