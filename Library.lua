@@ -901,12 +901,15 @@ function Library:Window(Config)
         Library:Notify("Config", "Saved config: " .. name, 3)
     end
     
+
     function Library:LoadConfig(name)
         if isfile(Library.Directory .. "/" .. name .. ".json") then
             local json = readfile(Library.Directory .. "/" .. name .. ".json")
             local data = HttpService:JSONDecode(json)
             for k, v in pairs(data) do
-                Library.Flags[k] = v
+                if Library.Flags[k] ~= nil then
+                    Library.Flags[k] = v
+                end
             end
             Library:Notify("Config", "Loaded config: " .. name, 3)
         end
@@ -914,7 +917,9 @@ function Library:Window(Config)
     table.insert(Library.UnloadSignals, InputService.InputBegan:Connect(function(input, processed)
         if input.KeyCode == Library.Keybind and not processed then
             Library.IsVisible = not Library.IsVisible
-            Library.ScreenGui.ShadowHolder.Visible = Library.IsVisible
+            if Library.ScreenGui then
+                Library.ScreenGui.Enabled = Library.IsVisible
+            end
         end
     end))
 
