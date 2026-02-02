@@ -581,6 +581,13 @@ function Library:Window(Config)
                 Box.AncestryChanged:Connect(function()
                     if not Box:IsDescendantOf(game) then List:Destroy() end
                 end)
+                function Drop:Refresh(NewList)
+                    Config.List = NewList or {} 
+                    if IsOpen then 
+                        Refresh() 
+                        UpdatePosition()
+                    end
+                end
                 
                 return Drop
             end
