@@ -682,316 +682,391 @@ function Library:Window(Config)
                 return Bind
             end
 
-         function Section:ColorPicker(Config)
-                -- Giá trị mặc định
-                Config.Default = Config.Default or Color3.fromRGB(255, 255, 255)
-                
-                -- Tạo ColorPicker Object
-                local ColorPicker = {
-                    Value = Config.Default,
-                    Transparency = Config.Transparency or 0,
-                    Type = 'ColorPicker',
-                    Title = Config.Name or 'Color picker',
-                    Callback = Config.Callback or function(Color) end,
-                    Rainbow = false
-                }
+        function Section:ColorPicker(Config)
+    Config = Config or {}
+    Config.Default = Config.Default or Color3.fromRGB(255, 255, 255)
 
-                -- 1. TẠO GIAO DIỆN DÒNG (Line) TRONG MENU
-                local Frame = Create("Frame", {
-                    Parent = Container, -- Parent vào Container của Section
-                    Size = UDim2.new(1, 0, 0, 35), 
-                    BackgroundTransparency = 1
-                })
+    local ColorPicker = {
+        Value = Config.Default,
+        Transparency = (Config.Transparency ~= nil and Config.Transparency) or 0,
+        Type = "ColorPicker",
+        Title = Config.Name or "Color picker",
+        Callback = Config.Callback or function() end,
+        Rainbow = false,
 
-                -- Tên chức năng (Bên trái)
-                Create("TextLabel", {
-                    Parent = Frame, 
-                    Text = Config.Name, 
-                    Size = UDim2.new(1, -60, 1, 0), 
-                    Position = UDim2.new(0, 12, 0, 0),
-                    BackgroundTransparency = 1, 
-                    TextColor3 = Library.Theme.Text, 
-                    Font = Enum.Font.Gotham, 
-                    TextSize = 13, 
-                    TextXAlignment = 0
-                })
+        Hue = 0,
+        Sat = 1,
+        Vib = 1
+    }
 
-                -- Ô hiển thị màu (Bên phải)
-                local DisplayFrame = Create("TextButton", { -- Dùng TextButton để click được
-                    Parent = Frame,
-                    Size = UDim2.new(0, 42, 0, 22), 
-                    Position = UDim2.new(1, -52, 0.5, -11),
-                    BackgroundColor3 = ColorPicker.Value,
-                    BorderColor3 = Library.Theme.Stroke,
-                    AutoButtonColor = false,
-                    Text = ""
-                })
-                Create("UICorner", {Parent = DisplayFrame, CornerRadius = UDim.new(0, 6)})
-                Create("UIStroke", {Parent = DisplayFrame, Color = Library.Theme.Stroke, Thickness = 1})
+    local function SetHSVFromRGB(color)
+        local h, s, v = Color3.toHSV(color)
+        ColorPicker.Hue, ColorPicker.Sat, ColorPicker.Vib = h, s, v
+    end
+    SetHSVFromRGB(ColorPicker.Value)
 
-                -- Nền bàn cờ (Checker) cho Transparency
-                if Config.Transparency then
-                    local Checker = Create("ImageLabel", {
-                        Parent = DisplayFrame,
-                        Size = UDim2.new(1, 0, 1, 0),
-                        BackgroundTransparency = 1,
-                        Image = "http://www.roblox.com/asset/?id=12977615774",
-                        ScaleType = Enum.ScaleType.Tile,
-                        TileSize = UDim2.new(0, 10, 0, 10),
-                        ZIndex = 0
-                    })
-                    Create("UICorner", {Parent = Checker, CornerRadius = UDim.new(0, 6)})
-                end
+    -- Line UI
+    local Line = Create("Frame", {
+        Parent = Container,
+        Size = UDim2.new(1, 0, 0, 35),
+        BackgroundTransparency = 1
+    })
 
-                -- Hàm xử lý HSV
-                function ColorPicker:SetHSVFromRGB(Color)
-                    local H, S, V = Color3.toHSV(Color)
-                    ColorPicker.Hue = H
-                    ColorPicker.Sat = S
-                    ColorPicker.Vib = V
-                end
-                ColorPicker:SetHSVFromRGB(ColorPicker.Value)
+    Create("TextLabel", {
+        Parent = Line,
+        Text = Config.Name or "Color",
+        Size = UDim2.new(1, -60, 1, 0),
+        Position = UDim2.new(0, 12, 0, 0),
+        BackgroundTransparency = 1,
+        TextColor3 = Library.Theme.Text,
+        Font = Enum.Font.Gotham,
+        TextSize = 13,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
 
-                -- 2. TẠO POPUP BẢNG MÀU (Nằm ở ScreenGui để đè lên mọi thứ)
-                local PickerFrameOuter = Create("Frame", {
-                    Name = 'ColorPickerPopup',
-                    Parent = Library.ScreenGui, -- Parent ra ngoài cùng
-                    BackgroundColor3 = Library.Theme.Main,
-                    BorderColor3 = Library.Theme.Stroke,
-                    Position = UDim2.fromOffset(DisplayFrame.AbsolutePosition.X, DisplayFrame.AbsolutePosition.Y + 30),
-                    Size = UDim2.fromOffset(230, Config.Transparency and 270 or 250),
-                    Visible = false,
-                    ZIndex = 5000 -- ZIndex cao nhất
-                })
-                Create("UICorner", {Parent = PickerFrameOuter, CornerRadius = UDim.new(0, 6)})
-                Create("UIStroke", {Parent = PickerFrameOuter, Color = Library.Theme.Stroke, Thickness = 1})
+    local DisplayFrame = Create("TextButton", {
+        Parent = Line,
+        Size = UDim2.new(0, 42, 0, 22),
+        Position = UDim2.new(1, -52, 0.5, -11),
+        BackgroundColor3 = ColorPicker.Value,
+        BackgroundTransparency = ColorPicker.Transparency,
+        BorderColor3 = Library.Theme.Stroke,
+        AutoButtonColor = false,
+        Text = ""
+    })
+    Create("UICorner", { Parent = DisplayFrame, CornerRadius = UDim.new(0, 6) })
+    Create("UIStroke", { Parent = DisplayFrame, Color = Library.Theme.Stroke, Thickness = 1 })
 
-                -- Cập nhật vị trí Popup bám theo nút
-                local function UpdatePopupPosition()
-                    if PickerFrameOuter.Visible then
-                        PickerFrameOuter.Position = UDim2.fromOffset(DisplayFrame.AbsolutePosition.X - 180, DisplayFrame.AbsolutePosition.Y + 30)
-                    end
-                end
-                table.insert(Library.UnloadSignals, RunService.RenderStepped:Connect(UpdatePopupPosition))
+    if Config.Transparency ~= nil then
+        local Checker = Create("ImageLabel", {
+            Parent = DisplayFrame,
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            Image = "http://www.roblox.com/asset/?id=12977615774",
+            ScaleType = Enum.ScaleType.Tile,
+            TileSize = UDim2.new(0, 10, 0, 10),
+            ZIndex = DisplayFrame.ZIndex - 1
+        })
+        Create("UICorner", { Parent = Checker, CornerRadius = UDim.new(0, 6) })
+    end
 
-                local PickerFrameInner = Create("Frame", {
-                    Parent = PickerFrameOuter,
-                    Size = UDim2.new(1, -10, 1, -10),
-                    Position = UDim2.new(0, 5, 0, 5),
-                    BackgroundTransparency = 1
-                })
+    -- Popup
+    local Popup = Create("Frame", {
+        Name = "ColorPickerPopup",
+        Parent = Library.ScreenGui,
+        BackgroundColor3 = Library.Theme.Main,
+        BorderColor3 = Library.Theme.Stroke,
+        BorderSizePixel = 1,
+        Size = UDim2.fromOffset(230, (Config.Transparency ~= nil) and 270 or 250),
+        Visible = false,
+        ZIndex = 5000
+    })
+    Create("UICorner", { Parent = Popup, CornerRadius = UDim.new(0, 6) })
+    Create("UIStroke", { Parent = Popup, Color = Library.Theme.Stroke, Thickness = 1 })
 
-                -- Khu vực chọn Saturation/Vibration (Hình vuông lớn)
-                local SatVibMapOuter = Create("ImageButton", {
-                    Parent = PickerFrameInner,
-                    Size = UDim2.new(0, 200, 0, 200),
-                    Image = "rbxassetid://4155801252", -- Saturation map
-                    AutoButtonColor = false,
-                    BorderSizePixel = 0
-                })
-                Create("UICorner", {Parent = SatVibMapOuter, CornerRadius = UDim.new(0, 4)})
-                
-                local CursorOuter = Create("ImageLabel", {
-                    Parent = SatVibMapOuter,
-                    Size = UDim2.new(0, 10, 0, 10),
-                    AnchorPoint = Vector2.new(0.5, 0.5),
-                    BackgroundTransparency = 1,
-                    Image = "http://www.roblox.com/asset/?id=9619665977",
-                    ImageColor3 = Color3.new(0,0,0)
-                })
+    local Inner = Create("Frame", {
+        Parent = Popup,
+        Size = UDim2.new(1, -10, 1, -10),
+        Position = UDim2.new(0, 5, 0, 5),
+        BackgroundTransparency = 1,
+        ZIndex = 5001
+    })
 
-                -- Thanh chọn Hue (Cầu vồng dọc)
-                local HueSelectorOuter = Create("ImageButton", {
-                    Parent = PickerFrameInner,
-                    Size = UDim2.new(0, 15, 0, 200),
-                    Position = UDim2.new(1, -15, 0, 0),
-                    AutoButtonColor = false,
-                    BorderSizePixel = 0
-                })
-                
-                -- Tạo Gradient cầu vồng
-                local GradientFrame = Create("Frame", {Parent = HueSelectorOuter, Size = UDim2.new(1,0,1,0), BackgroundColor3=Color3.new(1,1,1)})
-                Create("UICorner", {Parent = GradientFrame, CornerRadius = UDim.new(0, 4)})
-                local Seq = {}
-                for i=0, 1, 0.1 do table.insert(Seq, ColorSequenceKeypoint.new(i, Color3.fromHSV(i, 1, 1))) end
-                Create("UIGradient", {Parent = GradientFrame, Color = ColorSequence.new(Seq), Rotation = 90})
+    local function SetZ(obj, z)
+        if obj and obj:IsA("GuiObject") then obj.ZIndex = z end
+    end
 
-                local HueCursor = Create("Frame", {
-                    Parent = HueSelectorOuter,
-                    Size = UDim2.new(1, 0, 0, 2),
-                    BackgroundColor3 = Color3.new(1,1,1),
-                    BorderColor3 = Color3.new(0,0,0),
-                    BorderSizePixel = 1,
-                    ZIndex = 2
-                })
+    -- Sat/Vib map
+    local SatVib = Create("ImageButton", {
+        Parent = Inner,
+        Size = UDim2.fromOffset(200, 200),
+        Position = UDim2.fromOffset(0, 0),
+        Image = "rbxassetid://4155801252",
+        AutoButtonColor = false,
+        BorderSizePixel = 0,
+        ZIndex = 5002
+    })
+    Create("UICorner", { Parent = SatVib, CornerRadius = UDim.new(0, 4) })
 
-                -- TextBox Hex & RGB
-                local InputContainer = Create("Frame", {
-                    Parent = PickerFrameInner,
-                    Size = UDim2.new(1, 0, 0, 20),
-                    Position = UDim2.new(0, 0, 0, 205),
-                    BackgroundTransparency = 1
-                })
-                
-                local HexBox = Create("TextBox", {
-                    Parent = InputContainer,
-                    Size = UDim2.new(0.4, -2, 1, 0),
-                    BackgroundColor3 = Library.Theme.Secondary,
-                    Text = "#FFFFFF",
-                    TextColor3 = Library.Theme.Text,
-                    Font = Enum.Font.Gotham,
-                    TextSize = 12
-                })
-                Create("UICorner", {Parent = HexBox, CornerRadius = UDim.new(0, 4)})
+    local Cursor = Create("ImageLabel", {
+        Parent = SatVib,
+        Size = UDim2.fromOffset(10, 10),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundTransparency = 1,
+        Image = "http://www.roblox.com/asset/?id=9619665977",
+        ImageColor3 = Color3.new(0, 0, 0),
+        ZIndex = 5003
+    })
 
-                local RgbBox = Create("TextBox", {
-                    Parent = InputContainer,
-                    Size = UDim2.new(0.6, -2, 1, 0),
-                    Position = UDim2.new(0.4, 2, 0, 0),
-                    BackgroundColor3 = Library.Theme.Secondary,
-                    Text = "255, 255, 255",
-                    TextColor3 = Library.Theme.Text,
-                    Font = Enum.Font.Gotham,
-                    TextSize = 12
-                })
-                Create("UICorner", {Parent = RgbBox, CornerRadius = UDim.new(0, 4)})
+    -- Hue bar
+    local HueBar = Create("ImageButton", {
+        Parent = Inner,
+        Size = UDim2.fromOffset(15, 200),
+        Position = UDim2.new(1, -15, 0, 0),
+        AutoButtonColor = false,
+        BorderSizePixel = 0,
+        ZIndex = 5002
+    })
 
-                -- Thanh Transparency (Nếu bật)
-                local TransparencyBar, TransCursor
-                if Config.Transparency then
-                    TransparencyBar = Create("ImageButton", {
-                        Parent = PickerFrameInner,
-                        Size = UDim2.new(1, 0, 0, 10),
-                        Position = UDim2.new(0, 0, 0, 230),
-                        Image = "http://www.roblox.com/asset/?id=12978095818", -- Gradient trắng -> trong suốt
-                        AutoButtonColor = false
-                    })
-                    Create("UICorner", {Parent = TransparencyBar, CornerRadius = UDim.new(0, 4)})
-                    
-                    TransCursor = Create("Frame", {
-                        Parent = TransparencyBar,
-                        Size = UDim2.new(0, 2, 1, 0),
-                        BackgroundColor3 = Color3.new(1,1,1),
-                        BorderColor3 = Color3.new(0,0,0),
-                        BorderSizePixel = 1
-                    })
-                end
+    local HueGrad = Create("Frame", {
+        Parent = HueBar,
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundColor3 = Color3.new(1, 1, 1),
+        ZIndex = 5002
+    })
+    Create("UICorner", { Parent = HueGrad, CornerRadius = UDim.new(0, 4) })
 
-                -- LOGIC HIỂN THỊ
-                function ColorPicker:Display()
-                    ColorPicker.Value = Color3.fromHSV(ColorPicker.Hue, ColorPicker.Sat, ColorPicker.Vib)
-                    
-                    DisplayFrame.BackgroundColor3 = ColorPicker.Value
-                    DisplayFrame.BackgroundTransparency = ColorPicker.Transparency
-                    
-                    SatVibMapOuter.ImageColor3 = Color3.fromHSV(ColorPicker.Hue, 1, 1)
-                    CursorOuter.Position = UDim2.new(ColorPicker.Sat, 0, 1 - ColorPicker.Vib, 0)
-                    HueCursor.Position = UDim2.new(0, 0, ColorPicker.Hue, 0)
+    local seq = {}
+    for i = 0, 1, 0.1 do
+        seq[#seq + 1] = ColorSequenceKeypoint.new(i, Color3.fromHSV(i, 1, 1))
+    end
+    Create("UIGradient", { Parent = HueGrad, Color = ColorSequence.new(seq), Rotation = 90 })
 
-                    HexBox.Text = "#" .. ColorPicker.Value:ToHex()
-                    RgbBox.Text = math.floor(ColorPicker.Value.R*255)..", "..math.floor(ColorPicker.Value.G*255)..", "..math.floor(ColorPicker.Value.B*255)
+    local HueCursor = Create("Frame", {
+        Parent = HueBar,
+        Size = UDim2.new(1, 0, 0, 2),
+        BackgroundColor3 = Color3.new(1, 1, 1),
+        BorderColor3 = Color3.new(0, 0, 0),
+        BorderSizePixel = 1,
+        ZIndex = 5003
+    })
 
-                    if TransparencyBar then
-                        TransparencyBar.ImageColor3 = ColorPicker.Value
-                        TransCursor.Position = UDim2.new(1 - ColorPicker.Transparency, 0, 0, 0)
-                    end
+    -- Inputs
+    local InputRow = Create("Frame", {
+        Parent = Inner,
+        Size = UDim2.new(1, 0, 0, 20),
+        Position = UDim2.fromOffset(0, 205),
+        BackgroundTransparency = 1,
+        ZIndex = 5002
+    })
 
-                    -- Lưu Config & Callback
-                    Library.Flags[Config.Flag or Config.Name] = ColorPicker.Value
-                    if Config.Callback then Config.Callback(ColorPicker.Value) end
-                end
+    local HexBox = Create("TextBox", {
+        Parent = InputRow,
+        Size = UDim2.new(0.4, -2, 1, 0),
+        BackgroundColor3 = Library.Theme.Secondary,
+        Text = "#FFFFFF",
+        TextColor3 = Library.Theme.Text,
+        Font = Enum.Font.Gotham,
+        TextSize = 12,
+        ClearTextOnFocus = false,
+        ZIndex = 5003
+    })
+    Create("UICorner", { Parent = HexBox, CornerRadius = UDim.new(0, 4) })
+    Create("UIStroke", { Parent = HexBox, Color = Library.Theme.Stroke, Thickness = 1 })
 
-                -- LOGIC KÉO THẢ (INPUT)
-                local function UpdateHue(input)
-                    local y = math.clamp(input.Position.Y - HueSelectorOuter.AbsolutePosition.Y, 0, HueSelectorOuter.AbsoluteSize.Y)
-                    ColorPicker.Hue = y / HueSelectorOuter.AbsoluteSize.Y
-                    ColorPicker:Display()
-                end
+    local RgbBox = Create("TextBox", {
+        Parent = InputRow,
+        Size = UDim2.new(0.6, -2, 1, 0),
+        Position = UDim2.new(0.4, 2, 0, 0),
+        BackgroundColor3 = Library.Theme.Secondary,
+        Text = "255, 255, 255",
+        TextColor3 = Library.Theme.Text,
+        Font = Enum.Font.Gotham,
+        TextSize = 12,
+        ClearTextOnFocus = false,
+        ZIndex = 5003
+    })
+    Create("UICorner", { Parent = RgbBox, CornerRadius = UDim.new(0, 4) })
+    Create("UIStroke", { Parent = RgbBox, Color = Library.Theme.Stroke, Thickness = 1 })
 
-                local function UpdateSatVib(input)
-                    local x = math.clamp(input.Position.X - SatVibMapOuter.AbsolutePosition.X, 0, SatVibMapOuter.AbsoluteSize.X)
-                    local y = math.clamp(input.Position.Y - SatVibMapOuter.AbsolutePosition.Y, 0, SatVibMapOuter.AbsoluteSize.Y)
-                    ColorPicker.Sat = x / SatVibMapOuter.AbsoluteSize.X
-                    ColorPicker.Vib = 1 - (y / SatVibMapOuter.AbsoluteSize.Y)
-                    ColorPicker:Display()
-                end
-                
-                local function UpdateTrans(input)
-                    local x = math.clamp(input.Position.X - TransparencyBar.AbsolutePosition.X, 0, TransparencyBar.AbsoluteSize.X)
-                    ColorPicker.Transparency = 1 - (x / TransparencyBar.AbsoluteSize.X)
-                    ColorPicker:Display()
-                end
+    -- Transparency
+    local TransparencyBar, TransCursor
+    if Config.Transparency ~= nil then
+        TransparencyBar = Create("ImageButton", {
+            Parent = Inner,
+            Size = UDim2.new(1, 0, 0, 10),
+            Position = UDim2.fromOffset(0, 230),
+            Image = "http://www.roblox.com/asset/?id=12978095818",
+            AutoButtonColor = false,
+            BorderSizePixel = 0,
+            ZIndex = 5002
+        })
+        Create("UICorner", { Parent = TransparencyBar, CornerRadius = UDim.new(0, 4) })
 
-                -- Kết nối Input
-                local draggingHue, draggingSat, draggingTrans = false, false, false
+        TransCursor = Create("Frame", {
+            Parent = TransparencyBar,
+            Size = UDim2.new(0, 2, 1, 0),
+            BackgroundColor3 = Color3.new(1, 1, 1),
+            BorderColor3 = Color3.new(0, 0, 0),
+            BorderSizePixel = 1,
+            ZIndex = 5003
+        })
+    end
 
-                HueSelectorOuter.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        draggingHue = true
-                        UpdateHue(input)
-                    end
-                end)
-                
-                SatVibMapOuter.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        draggingSat = true
-                        UpdateSatVib(input)
-                    end
-                end)
+    -- Viewport clamp
+    local function ClampToViewport(px, py, sx, sy)
+        local cam = workspace.CurrentCamera
+        local vp = (cam and cam.ViewportSize) or Vector2.new(1920, 1080)
+        px = math.clamp(px, 5, vp.X - sx - 5)
+        py = math.clamp(py, 5, vp.Y - sy - 5)
+        return px, py
+    end
 
-                if TransparencyBar then
-                    TransparencyBar.InputBegan:Connect(function(input)
-                        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                            draggingTrans = true
-                            UpdateTrans(input)
-                        end
-                    end)
-                end
+    local function UpdatePopupPos(force)
+        if not Popup.Visible and not force then return end
+        local sx, sy = Popup.AbsoluteSize.X, Popup.AbsoluteSize.Y
+        local px = DisplayFrame.AbsolutePosition.X - 180
+        local py = DisplayFrame.AbsolutePosition.Y + 30
+        px, py = ClampToViewport(px, py, sx, sy)
+        Popup.Position = UDim2.fromOffset(px, py)
+    end
 
-                table.insert(Library.UnloadSignals, InputService.InputChanged:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseMovement then
-                        if draggingHue then UpdateHue(input) end
-                        if draggingSat then UpdateSatVib(input) end
-                        if draggingTrans then UpdateTrans(input) end
-                    end
-                end))
+    -- Display update
+    function ColorPicker:Display()
+        ColorPicker.Value = Color3.fromHSV(ColorPicker.Hue, ColorPicker.Sat, ColorPicker.Vib)
 
-                table.insert(Library.UnloadSignals, InputService.InputEnded:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        draggingHue, draggingSat, draggingTrans = false, false, false
-                    end
-                end))
+        DisplayFrame.BackgroundColor3 = ColorPicker.Value
+        DisplayFrame.BackgroundTransparency = (Config.Transparency ~= nil) and ColorPicker.Transparency or 0
 
-                -- Đóng mở Popup
-                DisplayFrame.MouseButton1Click:Connect(function()
-                    PickerFrameOuter.Visible = not PickerFrameOuter.Visible
-                    -- Đóng các popup khác
-                    for _, v in pairs(Library.ScreenGui:GetChildren()) do
-                        if v.Name == "ColorPickerPopup" and v ~= PickerFrameOuter then v.Visible = false end
-                    end
-                end)
-                
-                -- Rainbow Mode
-                task.spawn(function()
-                    while PickerFrameOuter do
-                        if ColorPicker.Rainbow then
-                            local h = tick() % 5 / 5
-                            ColorPicker.Hue = h
-                            ColorPicker:Display()
-                        end
-                        task.wait()
-                    end
-                end)
+        SatVib.ImageColor3 = Color3.fromHSV(ColorPicker.Hue, 1, 1)
+        Cursor.Position = UDim2.new(ColorPicker.Sat, 0, 1 - ColorPicker.Vib, 0)
+        HueCursor.Position = UDim2.new(0, 0, ColorPicker.Hue, 0)
 
-                -- Chuột phải vào ô màu để Toggle Rainbow
-                DisplayFrame.MouseButton2Click:Connect(function()
-                    ColorPicker.Rainbow = not ColorPicker.Rainbow
-                    Library:Notify("Rainbow Mode", "Toggled: "..tostring(ColorPicker.Rainbow), 2)
-                end)
+        HexBox.Text = "#" .. ColorPicker.Value:ToHex()
+        RgbBox.Text =
+            math.floor(ColorPicker.Value.R * 255) .. ", " ..
+            math.floor(ColorPicker.Value.G * 255) .. ", " ..
+            math.floor(ColorPicker.Value.B * 255)
 
-                ColorPicker:Display()
-                return ColorPicker
+        if TransparencyBar then
+            TransparencyBar.ImageColor3 = ColorPicker.Value
+            TransCursor.Position = UDim2.new(1 - ColorPicker.Transparency, 0, 0, 0)
+        end
+
+        -- Save flag
+        local flagName = Config.Flag or Config.Name
+        if Config.Transparency ~= nil then
+            Library.Flags[flagName] = { Color = ColorPicker.Value, Transparency = ColorPicker.Transparency }
+        else
+            Library.Flags[flagName] = ColorPicker.Value
+        end
+
+        ColorPicker.Callback(ColorPicker.Value, ColorPicker.Transparency)
+    end
+
+    -- Input handlers
+    local function UpdateHue(input)
+        local y = math.clamp(input.Position.Y - HueBar.AbsolutePosition.Y, 0, HueBar.AbsoluteSize.Y)
+        ColorPicker.Hue = y / HueBar.AbsoluteSize.Y
+        ColorPicker:Display()
+    end
+
+    local function UpdateSatVib(input)
+        local x = math.clamp(input.Position.X - SatVib.AbsolutePosition.X, 0, SatVib.AbsoluteSize.X)
+        local y = math.clamp(input.Position.Y - SatVib.AbsolutePosition.Y, 0, SatVib.AbsoluteSize.Y)
+        ColorPicker.Sat = x / SatVib.AbsoluteSize.X
+        ColorPicker.Vib = 1 - (y / SatVib.AbsoluteSize.Y)
+        ColorPicker:Display()
+    end
+
+    local function UpdateTrans(input)
+        if not TransparencyBar then return end
+        local x = math.clamp(input.Position.X - TransparencyBar.AbsolutePosition.X, 0, TransparencyBar.AbsoluteSize.X)
+        ColorPicker.Transparency = 1 - (x / TransparencyBar.AbsoluteSize.X)
+        ColorPicker:Display()
+    end
+
+    local draggingHue, draggingSat, draggingTrans = false, false, false
+
+    HueBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            draggingHue = true
+            UpdateHue(input)
+        end
+    end)
+
+    SatVib.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            draggingSat = true
+            UpdateSatVib(input)
+        end
+    end)
+
+    if TransparencyBar then
+        TransparencyBar.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                draggingTrans = true
+                UpdateTrans(input)
             end
+        end)
+    end
+
+    table.insert(Library.UnloadSignals, InputService.InputChanged:Connect(function(input)
+        local t = input.UserInputType
+        if t == Enum.UserInputType.MouseMovement or t == Enum.UserInputType.Touch then
+            if draggingHue then UpdateHue(input) end
+            if draggingSat then UpdateSatVib(input) end
+            if draggingTrans then UpdateTrans(input) end
+        end
+    end))
+
+    table.insert(Library.UnloadSignals, InputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            draggingHue, draggingSat, draggingTrans = false, false, false
+        end
+    end))
+
+    DisplayFrame.MouseButton1Click:Connect(function()
+        Popup.Visible = not Popup.Visible
+        if Popup.Visible then
+            UpdatePopupPos(true)
+        end
+        for _, v in ipairs(Library.ScreenGui:GetChildren()) do
+            if v.Name == "ColorPickerPopup" and v ~= Popup then
+                v.Visible = false
+            end
+        end
+    end)
+
+    DisplayFrame.MouseButton2Click:Connect(function()
+        ColorPicker.Rainbow = not ColorPicker.Rainbow
+        Library:Notify("Rainbow Mode", "Toggled: " .. tostring(ColorPicker.Rainbow), 2)
+    end)
+    table.insert(Library.UnloadSignals, RunService.RenderStepped:Connect(function()
+        if Popup and Popup.Parent and Popup.Visible then
+            UpdatePopupPos()
+        end
+    end))
+
+    task.spawn(function()
+        while Popup and Popup.Parent do
+            if ColorPicker.Rainbow then
+                ColorPicker.Hue = (tick() % 5) / 5
+                ColorPicker:Display()
+            end
+            task.wait()
+        end
+    end)
+
+    HexBox.FocusLost:Connect(function()
+        local txt = HexBox.Text:gsub("#", "")
+        if #txt == 6 then
+            local ok, col = pcall(function()
+                return Color3.fromHex(txt)
+            end)
+            if ok and col then
+                SetHSVFromRGB(col)
+                ColorPicker:Display()
+            end
+        end
+    end)
+
+    RgbBox.FocusLost:Connect(function()
+        local r, g, b = RgbBox.Text:match("(%d+)%s*,%s*(%d+)%s*,%s*(%d+)")
+        r, g, b = tonumber(r), tonumber(g), tonumber(b)
+        if r and g and b then
+            r = math.clamp(r, 0, 255)
+            g = math.clamp(g, 0, 255)
+            b = math.clamp(b, 0, 255)
+            local col = Color3.fromRGB(r, g, b)
+            SetHSVFromRGB(col)
+            ColorPicker:Display()
+        end
+    end)
+
+    ColorPicker:Display()
+    return ColorPicker
+end
             return Section
         end
         return Tab
