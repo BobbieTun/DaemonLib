@@ -1500,7 +1500,7 @@ function Library:Window(Config)
                 return Bind
             end
             
-            function Section:ColorPicker(Config)
+                        function Section:ColorPicker(Config)
                 Config = Config or {}
                 Config.Default = Config.Default or Color3.fromRGB(255, 255, 255)
                 
@@ -1634,9 +1634,11 @@ function Library:Window(Config)
                 })
                 Library:Create("UICorner", {Parent = HueGrad, CornerRadius = UDim.new(0, 6)})
                 
+                -- FIX: Use integer division to guarantee time=1.0 exactly
                 local seq = {}
-                for i = 0, 1, 0.05 do
-                    table.insert(seq, ColorSequenceKeypoint.new(i, Color3.fromHSV(i, 1, 1)))
+                for i = 0, 20 do
+                    local t = i / 20
+                    table.insert(seq, ColorSequenceKeypoint.new(t, Color3.fromHSV(t, 1, 1)))
                 end
                 Library:Create("UIGradient", {
                     Parent = HueGrad,
