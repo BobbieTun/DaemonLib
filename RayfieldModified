@@ -1238,7 +1238,12 @@ local function applyElementGradients(Element)
 		applyGradient(Element.Switch, SelectedTheme.ToggleEnabledGradient, 0)
 	end
 	if Element:FindFirstChild("Main") and SelectedTheme.SliderGradient then
-		applyGradient(Element.Main, SelectedTheme.SliderGradient, 0)
+		local progress = Element.Main:FindFirstChild("Progress")
+		if progress then
+			applyGradient(progress, SelectedTheme.SliderGradient, 0)
+		else
+			applyGradient(Element.Main, SelectedTheme.SliderGradient, 0)
+		end
 	end
 	if Element:FindFirstChild("InputFrame") and SelectedTheme.ElementGradient then
 		applyGradient(Element.InputFrame, SelectedTheme.ElementGradient, 0)
@@ -1720,7 +1725,7 @@ end
 local function setElementsVisible(show)
 	for _, tab in ipairs(Elements:GetChildren()) do
 		if tab.Name ~= "Template" and tab.ClassName == "ScrollingFrame" and tab.Name ~= "Placeholder" then
-			for _, element in ipairs(tab:GetChildren()) do
+			local function processElement(element)
 				if element.ClassName == "Frame" then
 					if element.Name ~= "SectionSpacing" and element.Name ~= "Placeholder" then
 						if element.Name == "SectionTitle" or element.Name == 'SearchTitle-fsefsefesfsefesfesfThanks' then
@@ -1739,6 +1744,21 @@ local function setElementsVisible(show)
 							if child.ClassName == "Frame" or child.ClassName == "TextLabel" or child.ClassName == "TextBox" or child.ClassName == "ImageButton" or child.ClassName == "ImageLabel" then
 								child.Visible = show
 							end
+						end
+					end
+				end
+			end
+			-- Process direct children
+			for _, element in ipairs(tab:GetChildren()) do
+				processElement(element)
+			end
+			-- Process TwoColumn children
+			local container = tab:FindFirstChild("TwoColumnContainer")
+			if container then
+				for _, col in ipairs(container:GetChildren()) do
+					if col:IsA("GuiObject") then
+						for _, element in ipairs(col:GetChildren()) do
+							processElement(element)
 						end
 					end
 				end
@@ -2464,40 +2484,38 @@ function RayfieldLibrary:CreateWindow(Settings)
 		if TwoColumn then
 			local container = Instance.new("Frame")
 			container.Name = "TwoColumnContainer"
-			container.Size = UDim2.new(1, 0, 1, 0)
+			container.Size = UDim2.new(1, -10, 0, 0)
+			container.AutomaticSize = Enum.AutomaticSize.Y
 			container.BackgroundTransparency = 1
 			container.Parent = TabPage
 
 			local list = Instance.new("UIListLayout")
 			list.FillDirection = Enum.FillDirection.Horizontal
-			list.Padding = UDim.new(0, 6)
+			list.Padding = UDim.new(0, 12)
 			list.Parent = container
 
-			local left = Instance.new("ScrollingFrame")
-			left.Name = "LeftColumn"
-			left.Size = UDim2.new(0.5, -3, 1, 0)
-			left.BackgroundTransparency = 1
-			left.ScrollBarThickness = 0
-			left.CanvasSize = UDim2.new(0, 0, 0, 0)
-			left.AutomaticCanvasSize = Enum.AutomaticSize.Y
-			left.Parent = container
+			local function makeColumn(name)
+				local col = Instance.new("Frame")
+				col.Name = name
+				col.Size = UDim2.new(0.5, -6, 0, 0)
+				col.AutomaticSize = Enum.AutomaticSize.Y
+				col.BackgroundTransparency = 1
+				col.Parent = container
 
-			local leftLayout = Instance.new("UIListLayout")
-			leftLayout.Padding = UDim.new(0, 5)
-			leftLayout.Parent = left
+				local layout = Instance.new("UIListLayout")
+				layout.Padding = UDim.new(0, 8)
+				layout.Parent = col
 
-			local right = Instance.new("ScrollingFrame")
-			right.Name = "RightColumn"
-			right.Size = UDim2.new(0.5, -3, 1, 0)
-			right.BackgroundTransparency = 1
-			right.ScrollBarThickness = 0
-			right.CanvasSize = UDim2.new(0, 0, 0, 0)
-			right.AutomaticCanvasSize = Enum.AutomaticSize.Y
-			right.Parent = container
+				local pad = Instance.new("UIPadding")
+				pad.PaddingLeft = UDim.new(0, 4)
+				pad.PaddingRight = UDim.new(0, 4)
+				pad.Parent = col
 
-			local rightLayout = Instance.new("UIListLayout")
-			rightLayout.Padding = UDim.new(0, 5)
-			rightLayout.Parent = right
+				return col
+			end
+
+			makeColumn("LeftColumn")
+			makeColumn("RightColumn")
 
 			TabPage:SetAttribute("TwoColumn", true)
 		end
@@ -4138,24 +4156,24 @@ Topbar.ChangeSize.MouseButton1Click:Connect(function()
 end)
 
 Main.Search.Input:GetPropertyChangedSignal('Text'):Connect(function()
+	local currentPage = Elements.UIPageLayout.CurrentPage
 	if #Main.Search.Input.Text > 0 then
-		if not Elements.UIPageLayout.CurrentPage:FindFirstChild('SearchTitle-fsefsefesfsefesfesfThanks') then 
+		if not currentPage:FindFirstChild('SearchTitle-fsefsefesfsefesfesfThanks') then 
 			local searchTitle = Elements.Template.SectionTitle:Clone()
-			searchTitle.Parent = Elements.UIPageLayout.CurrentPage
+			searchTitle.Parent = currentPage
 			searchTitle.Name = 'SearchTitle-fsefsefesfsefesfesfThanks'
 			searchTitle.LayoutOrder = -100
-			searchTitle.Title.Text = "Results from '"..Elements.UIPageLayout.CurrentPage.Name.."'"
+			searchTitle.Title.Text = "Results from '"..currentPage.Name.."'"
 			searchTitle.Visible = true
 		end
 	else
-		local searchTitle = Elements.UIPageLayout.CurrentPage:FindFirstChild('SearchTitle-fsefsefesfsefesfesfThanks')
-
+		local searchTitle = currentPage:FindFirstChild('SearchTitle-fsefsefesfsefesfesfThanks')
 		if searchTitle then
 			searchTitle:Destroy()
 		end
 	end
 
-	for _, element in ipairs(Elements.UIPageLayout.CurrentPage:GetChildren()) do
+	local function processSearchElement(element)
 		if element.ClassName ~= 'UIListLayout' and element.Name ~= 'Placeholder' and element.Name ~= 'SearchTitle-fsefsefesfsefesfesfThanks' then
 			if element.Name == 'SectionTitle' then
 				if #Main.Search.Input.Text == 0 then
@@ -4168,6 +4186,22 @@ Main.Search.Input:GetPropertyChangedSignal('Text'):Connect(function()
 					element.Visible = true
 				else
 					element.Visible = false
+				end
+			end
+		end
+	end
+
+	-- Search direct children
+	for _, element in ipairs(currentPage:GetChildren()) do
+		processSearchElement(element)
+	end
+	-- Search TwoColumn children
+	local container = currentPage:FindFirstChild("TwoColumnContainer")
+	if container then
+		for _, col in ipairs(container:GetChildren()) do
+			if col:IsA("GuiObject") then
+				for _, element in ipairs(col:GetChildren()) do
+					processSearchElement(element)
 				end
 			end
 		end
