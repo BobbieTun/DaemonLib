@@ -201,16 +201,16 @@ local Library = { } do
     Library.WindowHeight = 540
 
     Library.Theme = {
-        Background = Color3.fromRGB(10, 10, 10),
-        Section = Color3.fromRGB(16, 16, 16),
-        Element = Color3.fromRGB(24, 24, 24),
-        Light = Color3.fromRGB(36, 36, 36),
-        Hover = Color3.fromRGB(48, 48, 48),
-        Line = Color3.fromRGB(24, 24, 24),
-        Text = Color3.fromRGB(240, 240, 240),
-        DimText = Color3.fromRGB(130, 130, 130),
-        DimIcon = Color3.fromRGB(130, 130, 130),
-        Accent = Color3.fromRGB(220, 220, 220)
+        Background = Color3.fromRGB(14, 14, 16),
+        Section = Color3.fromRGB(19, 19, 22),
+        Element = Color3.fromRGB(26, 26, 30),
+        Light = Color3.fromRGB(33, 33, 38),
+        Hover = Color3.fromRGB(40, 40, 46),
+        Line = Color3.fromRGB(26, 26, 30),
+        Text = Color3.fromRGB(255, 255, 255),
+        DimText = Color3.fromRGB(130, 130, 138),
+        DimIcon = Color3.fromRGB(130, 130, 138),
+        Accent = Color3.fromRGB(147, 112, 255)
     }
 
     Library.AccentPresets = {
