@@ -2343,7 +2343,7 @@ local Library = { } do
         local MaxSubW = W - 120
 
         local Window = {
-            Name = Params.Name or "ZOLAR",
+            Name = Params.Name or "DAEMONIX",
             Icon = Params.Icon or "layers",
             IsOpen = true,
             Tabs = { },
